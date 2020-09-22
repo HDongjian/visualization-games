@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>绘制文字</title>
+  <style>
+    canvas {
+      border: 1px solid pink;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="cvs"></canvas>
+</body>
+<script>
+  var cvs = document.getElementById('cvs')
+  // 获取工具集
+  var cxt = cvs.getContext('2d')
+
+  //设置样式
+  cxt.font = 'bold 20px 黑体'
+
+  // 水平对齐方式
+  cxt.textAlign = 'center'
+  //垂直对齐方式
+  cxt.textBaseline = 'bottom'
+  //绘制填充文字
+  cxt.fillText('画布', 30, 30)
+
+  //绘制线条文字
+  cxt.strokeText('画布', 30, 80)
+  //将绘制的内容保存为图片
+  
+  let image = cvs.toDataURL('image/png',1)
+  console.log(image)
+</script>
+
+</html>

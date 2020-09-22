@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>绘制文字</title>
+  <style>
+    canvas {
+      border: 1px solid pink;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="cvs"></canvas>
+</body>
+<script>
+  var cvs = document.getElementById('cvs')
+  // 获取工具集
+  var cxt = cvs.getContext('2d')
+  //先绘制路径
+  //cxt.rect(10,10,50,50) //(x,y,w,h)
+  //描边
+  // cxt.stroke()
+  //填充
+  // cxt.fill()
+
+  // 调用一次性方法
+  // cxt.strokeRect(10,10,50,50)
+  // cxt.fillRect(10,10,50,50)
+
+  //清楚区域内面积
+  // cxt.clearRect(10,10,50,50)
+
+  // 绘制圆形
+  // cxt.arc(60,60,50,0,Math.PI,true) // (x,y,r,sAngle,eAngle,clockwise)(起始角度，结束角度，逆时针还是顺时针)
+  // cxt.stroke()
+  // cxt.fill()
+  
+  // 绘制图片
+  //定义图片对象
+  var img = new Image();
+  img.src = './1.png'
+  img.onload = function(){
+    // 绘制图片
+    // cxt.drawImage(this,10,10) // (img,x1,y1,w1,h1,x2,y2,w2,h2)
+    cxt.drawImage(this,10,10,10,10,10,10,30,30)
+  }
+
+</script>
+
+</html>

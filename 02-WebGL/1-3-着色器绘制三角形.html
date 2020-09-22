@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>着色器绘制三角形</title>
+  <style>
+    canvas {
+      border: 1px solid pink;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="cvs" width="200" height="200">你的浏览器不支持画布元素</canvas>
+</body>
+<script>
+  var cvs = document.getElementById('cvs')
+  // 获取工具集
+  var gl = cvs.getContext('webgl')
+  // 顶点着色器
+  var VSHADER_SOURCE =
+    'attribute vec4 a_Position;' + //使用存储限定符定义一个接受顶点坐标的变量
+    'void main() {' +
+    '  gl_Position = a_Position; ' + //定义点的坐标并转换成变量保存
+    '} '
+
+  //片段着色器
+  var FSHADER_SOURCE =
+    'void main() {' +
+    '  gl_FragColor = vec4(0.0, 1.0, 0.0, 1.0);' +
+    '}'
+
+  // 新建一个用于装载顶点字符串的着色器对象
+  var vertShader = gl.createShader(gl.VERTEX_SHADER)
+  // 加载保存好的顶点变量
+  gl.shaderSource(vertShader, VSHADER_SOURCE)
+  //编译顶点着色器
+  gl.compileShader(vertShader)
+
+  // 新建一个用于装载片段字符串的着色器对象
+  var fragShader = gl.createShader(gl.FRAGMENT_SHADER)
+  //加载保存好的片段代码字符串变量
+  gl.shaderSource(fragShader, FSHADER_SOURCE)
+  //编辑片段着色器
+  gl.compileShader(fragShader)
+
+  //新建一个程序
+  var shaderProgram = gl.createProgram()
+  // 分别附加两个已编译好的着色器对象
+  gl.attachShader(shaderProgram, vertShader)
+  gl.attachShader(shaderProgram, fragShader)
+
+  // 连接两个附加好的着色器程序
+  gl.linkProgram(shaderProgram)
+  // 开启程序的使用
+  gl.useProgram(shaderProgram)
+
+  //定义一个类型数组保存顶点坐标值
+  var vertices = new Float32Array([ // 类型数组代表的是平台字节顺序为32位的浮点数型数组
+    0.0,0.5,
+    -0.5,-0.5,
+    0.5,-0.5
+  ])
+  // 先创建一个缓存对象
+  var vertexBuffer = gl.createBuffer()
+  // 说明缓存对象保存的类型
+  gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffer)
+  // 写入坐标数据
+  gl.bufferData(gl.ARRAY_BUFFER,vertices,gl.STATIC_DRAW) //（类型，数据，格式）
+  // 获取到顶点着色器的中的变量
+  var a_Position = gl.getAttribLocation(shaderProgram,'a_Position') //变量位置
+  // 将坐标值赋值给变量
+  gl.vertexAttribPointer(a_Position,2,gl.FLOAT,false,0,0)
+  // 开启变量值得使用
+  gl.enableVertexAttribArray(a_Position)
+
+  // 绘制指定位置图形
+  gl.drawArrays(gl.TRIANGLES, 0, 3) //(绘制的类型，开始的位置，结束的位置)
+</script>
+
+</html>

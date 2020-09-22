@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>绘制文字</title>
+  <style>
+    canvas {
+      border: 1px solid pink;
+    }
+  </style>
+</head>
+
+<body>
+  <canvas id="cvs"></canvas>
+</body>
+<script>
+  var cvs = document.getElementById('cvs')
+  // 获取工具集
+  var cxt = cvs.getContext('2d')
+  //定义一个中奖信息的数组
+  var arrGisf = ['一等奖', '二等奖', '三等奖', '谢谢惠顾', ]
+  //随机生成一个中奖信息
+  var rdmgif = arrGisf[Math.floor(Math.random() * arrGisf.length)]
+  cxt.font = 'bold 25px 黑体'
+  cxt.textAlign = "center"
+  cxt.textBaseLine = 'middle'
+  cxt.fillStyle = 'red'
+
+  //将获取的中奖信息绘制到画布
+  cxt.fillText(rdmgif, cvs.width / 2, cvs.height / 2)
+
+  //将绘制的中奖信息保存为图片并作为画布元素的背景图片
+  var dataUrl = cvs.toDataURL('image/png', 1)
+  cvs.style.background = 'url(' + dataUrl + ')'
+
+  //绘制一个与画布同高宽的矩形覆盖中奖信息
+  cxt.clearRect(0, 0, cvs.width, cvs.height)
+
+  //设置矩形的颜色
+  cxt.fillStyle = '#ddd'
+
+  //绘制覆盖的区域
+  cxt.fillRect(0, 0, cvs.width, cvs.height)
+
+  //设置一个变量控制出发
+
+  var flag = false
+
+  cvs.addEventListener('mousedown', function () {
+    flag  = true
+    //将绘制区域设为透明
+    cxt.globalCompositeOperation = 'destination-out'
+  })
+  cvs.addEventListener('mousemove', function (e) {
+    if(!flag) return
+    var x = e.clientX
+    var y = e.clientY
+    cxt.fillStyle = 'red'
+    cxt.fillRect(x,y,10,10)
+  })
+  cvs.addEventListener('mouseup', function () {
+    flag  = false
+  })
+</script>
+
+</html>
