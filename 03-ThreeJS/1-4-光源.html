@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>光源</title>
+  <style>
+    body {
+      margin: 0;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+  </style>
+</head>
+
+<body onload="init()">
+
+</body>
+<script src="http://cdn.bootcss.com/three.js/92/three.js"></script>
+<script>
+  //声明全局变量
+
+  var renderer, camera, scene, geometry, material, mesh, stats, line, directionalLight
+  console.dir(THREE)
+  // stats = new Stats()
+  // document.body.appendChild(stats.dom)
+  //初始化渲染器
+  function initRenderer() {
+    renderer = new THREE.WebGLRenderer() //实例化渲染器
+    renderer.setSize(window.innerWidth, window.innerHeight) //设置宽高
+    document.body.appendChild(renderer.domElement) //添加到Dom\
+
+    renderer.shadowMap.enabled = true
+  }
+
+  // 初始化场景
+  function initScene() {
+    scene = new THREE.Scene()
+  }
+
+  //初始化相机
+  function initCamera() {
+    camera = new THREE.PerspectiveCamera(
+      45,
+      window.innerWidth / window.innerHeight,
+      0.1,
+      200
+    ) //实例化相机
+    camera.position.set(0, 0, 15)
+  }
+
+  // 创建模型
+  function initMesh() {
+    geometry = new THREE.BoxGeometry(2, 2, 2)
+    material = new THREE.MeshPhongMaterial({
+      color: 0x00ffff
+    })
+    mesh = new THREE.Mesh(geometry, material) // 创建网格
+    scene.add(mesh) //将网格添加到场景
+  }
+
+  function initLight() {
+    scene.add(new THREE.AmbientLight('#111111'))
+    directionalLight = new THREE.PointLight("#ffffff");
+    directionalLight.position.set(20, 50, 50)
+    directionalLight.castShadow = true
+    directionalLight.shadow.camera.near = 20; //产生阴影的最近距离
+    directionalLight.shadow.camera.far = 100; //产生阴影的最远距离
+    directionalLight.shadow.camera.left = -50; //产生阴影距离位置的最左边位置
+    directionalLight.shadow.camera.right = 50; //最右边
+    directionalLight.shadow.camera.top = 50; //最上边
+    directionalLight.shadow.camera.bottom = -50; //最下面
+
+    //这两个值决定生成阴影密度 默认512
+    directionalLight.shadow.mapSize.height = 1024;
+    directionalLight.shadow.mapSize.width = 1024;
+    scene.add(directionalLight)
+
+    //添加灯光辅助
+    debug = new THREE.CameraHelper(directionalLight.shadow.camera);
+    debug.name = "debug";
+    scene.add(debug);
+  }
+
+  function initModel() {
+    //球体
+    var sphereGeometry = new THREE.SphereGeometry(1, 20, 20);
+    var sphereMaterial = new THREE.MeshPhongMaterial({
+      color: 0xff00ff
+    });
+
+    sphere = new THREE.Mesh(sphereGeometry, sphereMaterial);
+
+    sphere.castShadow = true; //开启阴影
+
+    directionalLight.target = sphere; //平行光的焦点到球
+
+    scene.add(sphere);
+    //底部平面
+    var planeGeometry = new THREE.PlaneGeometry(50, 50);
+    var planeMaterial = new THREE.MeshLambertMaterial({
+      color: 0xaaaaaa
+    });
+    plane = new THREE.Mesh(planeGeometry, planeMaterial);
+    plane.rotation.x = -0.5 * Math.PI;
+    plane.position.y = -5;
+
+    plane.receiveShadow = true; //可以接收阴影
+
+    scene.add(plane);
+  }
+  // 运行动画
+  function animate() {
+    // requestAnimationFrame(animate) //循环调用函数
+    // mesh.rotation.x += 0.01 // 每帧网格模型沿X轴旋转0.01弧度
+    // mesh.rotation.y += 0.02 // 每帧网格模型沿Y轴旋转0.02弧度
+    renderer.render(scene, camera) //渲染界面
+  }
+  var controls = {
+    positionX: 0,
+    positionY: 0,
+    positionZ: 0,
+  }
+  // 初始化函数，页面加载完成之后调用
+  function init() {
+    initRenderer() //渲染
+    initScene() //场景
+    initCamera() //相机
+
+    // initMesh() //物体
+    initLight()
+    initModel()
+    animate() //旋转动画
+  }
+</script>
+
+</html>
