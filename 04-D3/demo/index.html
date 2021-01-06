@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+    <button id="update">Update</button>
+    <script src="https://d3js.org/d3.v5.js"></script>
+    <script>
+        // 1. 添加画布
+
+        var width = 350;
+        var height = 300;
+
+        var svg = d3.select('body').append('svg').attr('width', width).attr('height', height);
+
+        // 2. 添加内容
+        var dataset = [1, 2, 3, 4, 5];  // 数据源  x
+
+        // 比例尺  让图表更加的直观， 合理
+
+        var min = d3.min(dataset);
+        var max = d3.max(dataset);
+
+        // console.log(max)
+
+        // scaleLinear可以定义比例尺  domain range
+        var linear = d3.scaleLinear().domain([0, max]).range([0, 300]);
+
+        // 定义坐标轴
+        // axisBottom 原生方法
+
+        // 完成坐标轴的创建
+        var axis = d3.axisBottom(linear);
+
+        // 把坐标轴插入
+        svg.append("g")
+            .attr('transform', 'translate(20, 130)')
+            .call(axis);
+
+
+        // 序数比例尺  scaleOrdinal
+        var index = [0, 1, 2, 3, 4, 5]
+        var color = ["red", "blue", "green", "yellow", "black"];
+
+        var ordinal = d3.scaleOrdinal().domain(index).range(color);
+
+
+
+        var rectHeight = 25;  // 矩形的高度
+
+        // enter专门用于 实际的dom数量比注入的dom数量少的情况，它有点类似于 占位符
+        svg.selectAll('rect').data(dataset).enter().append('rect').attr('x', 20).attr('y', function (d, i) {
+            return i * rectHeight;
+        }).attr('width', function (d, i) {
+            return linear(d);
+        }).attr('height', rectHeight - 2).attr('fill', function (d, i) {
+            return ordinal(i);
+        })
+
+
+    </script>
+</body>
+
+</html>

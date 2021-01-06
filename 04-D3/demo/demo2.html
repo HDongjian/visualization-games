@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        #update {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <button id="update">更新</button>
+    <script src="https://d3js.org/d3.v5.js"></script>
+    <script>
+
+        // 1. 添加画布
+        var width = 960;
+        var height = 500;
+
+        var svg = d3.select('body').append('svg').attr('width', width).attr('height', height)
+
+        // 完成 静态的  坐标轴
+        // 线性比例尺
+        var scale = d3.scaleLinear().domain([0, 100]).range([100, 860]);
+
+        var axis = d3.axisBottom(scale);
+
+        
+        var g = svg.append('g').attr('id', 'g').call(axis);
+
+        // 绑定事件
+        d3.select('#update').on('click', function() {
+            // 更新数据
+            scale.domain([0, Math.random() * 100]);
+            // g.call(axis);
+            // transition d3提供默认的动画
+            d3.select('#g').transition().call(axis)
+        })
+
+    </script>
+</body>
+
+</html>

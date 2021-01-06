@@ -1,0 +1,27 @@
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>HelloWorld</title>
+</head>
+
+<body>
+    <p>Hello World 1</p>
+    <p>Hello World 2</p>
+    <p>Hello World 3</p>
+    <p>Hello World 4</p>
+    <script src="https://d3js.org/d3.v5.js"></script>
+    <script>
+
+        // datum()  绑定一个数据，到dom
+
+        var arr = ['我是p1', '我是p2','我是p3'];
+
+        d3.select("body").selectAll("p").data(arr).text(function(d, i) {  // d 代表 datum绑定的数据  i 代表index
+            console.log(d, i);
+            return d;
+        });
+    </script>
+</body>
+
+</html>

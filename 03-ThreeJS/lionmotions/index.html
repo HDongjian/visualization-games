@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>狮子</title>
+  <style>
+    html,
+    body {
+      margin: 0;
+      height: 100%;
+    }
+  </style>
+</head>
+
+<body onload="draw()">
+  <!--游戏移动操作杆-->
+  <!-- <div id="joystick">
+    <div class="bar-wrap">
+      <div class="bar"></div>
+    </div>
+  </div> -->
+  <!--技能按键组-->
+  <!-- <div id="skills">
+    <div class="attack bar"></div>
+  </div> -->
+</body>
+
+<script src="https://cdn.bootcss.com/three.js/92/three.js"></script>
+<script src="./util/inflate.js"></script>
+<script src="./util/FBXLoader.js"></script>
+<script src="./util/OrbitControls.js"></script>
+<script src="http://www.wjceo.com/lib/js/libs/stats.min.js"></script>
+<script src="https://cdn.bootcss.com/dat-gui/0.7.1/dat.gui.min.js"></script>
+<script src="./util/dop.js"></script>
+<script>
+  var renderer, camera, scene, light, mixer, actions, gui, datGui, naruto
+  var clock = new THREE.Clock() //获取时间
+  let dop = new Dop() //兼容移动端和PC端的事件绑定的工具
+
+  function initRender() {
+    renderer = new THREE.WebGLRenderer({
+      antialias: true, //开启了抗锯齿
+    })
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    renderer.setClearColor(0xeeeeee)
+    renderer.shadowMap.enable = true //开启阴影
+
+    document.body.appendChild(renderer.domElement)
+  }
+
+  function initScene() {
+    scene = new THREE.Scene()
+    scene.background = new THREE.Color(0xa0a0a0)
+  }
+
+  function initCamera() {
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1,
+      20000) //相机的效果是模拟人眼看到的效果，就是具有透视的效果，近大远小。
+    camera.position.set(0, 800, -800)
+    camera.lookAt(new THREE.Vector3()) //位置属性是一个`THREE.Vector3`（三维向量）的对象（后期教程会讲解相关对象），我们可以直接重新赋值一个新的对象
+  }
+
+  function initLight() {
+    scene.add(new THREE.AmbientLight(0x444444)) //添加环境光
+    light = new THREE.DirectionalLight('#fff') //初始化直射光
+    light.position.set(0, 200, 100)
+    light.lookAt(new THREE.Vector3())
+    light.castShadow = true;
+    // light.shadow.camera.top = 180;
+    // light.shadow.camera.bottom = -180;
+    // light.shadow.camera.left = -180;
+    // light.shadow.camera.right = 180;
+    light.castShadow = true
+    scene.add(light)
+  }
+
+  function initModel() {
+
+    // 添加绿地
+    var groundTexture = new THREE.TextureLoader().load('./images/grasslight-big.jpg') //图片导入的方式
+    groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping
+    groundTexture.repeat.set(25, 25)
+    groundTexture.anisotropy = 16
+    var groundMaterial = new THREE.MeshLambertMaterial({ //材质会对光有反应，但是不会出现高光，可以模拟一些粗糙的材质的物体，比如木头或者石头
+      map: groundTexture
+    })
+    var mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(20000, 20000), groundMaterial)
+    mesh.rotation.x = -Math.PI / 2
+    mesh.receiveShadow = true
+    scene.add(mesh)
+
+    var loader = new THREE.FBXLoader()
+    loader.load('./fbx/Lion+motions.fbx', mesh => {
+      console.log(mesh)
+      scene.add(mesh)
+      mixer = mesh.mixer = new THREE.AnimationMixer(mesh)
+      //把动画一个一个拿出来
+      actions = [] //存储动画用于调用
+      for (let i = 0; i < mesh.animations.length; i++) {
+        createActions(i)
+      }
+
+      function createActions(i) {
+        actions[i] = mixer.clipAction(mesh.animations[i])
+        // actions[i].play()
+        // 调用动画
+        gui["action" + i] = function () {
+          for (var j = 0; j < actions.length; j++) {
+            if (j === i) {
+              actions[j].play()
+            } else {
+              actions[j].stop()
+            }
+          }
+        }
+      }
+      //添加暂停所有动画的按键
+      gui.stop = function () {
+        for (var i = 0; i < actions.length; i++) {
+          actions[i].stop();
+        }
+      };
+      console.log(gui)
+      gui['action5']() // 页面刚加载进来的之后执行动画
+      mesh.position.y += 110;
+      scene.add(mesh)
+      naruto = mesh;
+    })
+
+  }
+
+  function initGui() {
+    gui = {}
+  }
+
+
+  function animate() {
+    // render()
+    renderer.render(scene, camera)
+    requestAnimationFrame(animate)
+  }
+
+  function draw() {
+    try {
+      initGui()
+      initRender()
+      initScene()
+      initCamera()
+      initLight()
+      initModel()
+      
+      animate()
+    } catch (error) {
+      console.log(error)
+    }
+
+  }
+</script>
+
+</html>

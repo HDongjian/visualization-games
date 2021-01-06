@@ -1,0 +1,11 @@
+Model Information:
+* title:	Lion+motions
+* source:	https://sketchfab.com/3d-models/lionmotions-f735351294fd4303ab16b2d661f9d6b2
+* author:	Pablo444 (https://sketchfab.com/Pablo444)
+
+Model License:
+* license type:	CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
+* requirements:	Author must be credited. Commercial use is allowed.
+
+If you use this 3D model in your project be sure to copy paste this credit wherever you share it:
+This work is based on "Lion+motions" (https://sketchfab.com/3d-models/lionmotions-f735351294fd4303ab16b2d661f9d6b2) by Pablo444 (https://sketchfab.com/Pablo444) licensed under CC-BY-4.0 (http://creativecommons.org/licenses/by/4.0/)
