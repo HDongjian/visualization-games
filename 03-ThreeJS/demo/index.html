@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>游戏操作视频</title>
+  <link rel="stylesheet" href="./index.css" type="text/css">
+
+</head>
+
+<body onload="draw()">
+  <!--游戏移动操作杆-->
+  <div id="joystick">
+    <div class="bar-wrap">
+      <div class="bar"></div>
+    </div>
+  </div>
+  <!--技能按键组-->
+  <div id="skills">
+    <div class="attack bar"></div>
+  </div>
+</body>
+<script src="https://cdn.bootcss.com/three.js/92/three.js"></script>
+<script src="./util/inflate.js"></script>
+<script src="./util/FBXLoader.js"></script>
+<script src="./util/OrbitControls.js"></script>
+<script src="http://www.wjceo.com/lib/js/libs/stats.min.js"></script>
+<script src="https://cdn.bootcss.com/dat-gui/0.7.1/dat.gui.min.js"></script>
+<script src="./util/dop.js"></script>
+<script>
+  var renderer, camera, scene, light, mixer, actions, gui, datGui, naruto
+  var clock = new THREE.Clock() //获取时间
+  let dop = new Dop() //兼容移动端和PC端的事件绑定的工具
+
+
+  function initGui() {
+    gui = {}
+    for (let i = 0; i < 27; i++) {
+      gui[`play${i}`] = function () {
+        gui[`action${i}`]()
+      }
+    }
+    datGui = new dat.GUI()
+    for (let i = 0; i < 27; i++) {
+      datGui.add(gui, `play${i}`)
+    }
+  }
+
+  function initRender() {
+    renderer = new THREE.WebGLRenderer({
+      antialias: true, //开启了抗锯齿
+    })
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    renderer.setClearColor(0xeeeeee)
+    renderer.shadowMap.enable = true //开启阴影
+
+    document.body.appendChild(renderer.domElement)
+  }
+
+  function initScene() {
+    scene = new THREE.Scene()
+    scene.background = new THREE.Color(0xa0a0a0)
+  }
+
+  function initCamera() {
+    camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1,
+      20000) //相机的效果是模拟人眼看到的效果，就是具有透视的效果，近大远小。
+    camera.position.set(0, 800, -800)
+    camera.lookAt(new THREE.Vector3()) //位置属性是一个`THREE.Vector3`（三维向量）的对象（后期教程会讲解相关对象），我们可以直接重新赋值一个新的对象
+  }
+
+  function initLight() {
+    scene.add(new THREE.AmbientLight(0x444444)) //添加环境光
+    light = new THREE.DirectionalLight(0xaaaaaa) //初始化直射光
+    light.position.set(0, 200, 100)
+    light.lookAt(new THREE.Vector3())
+    light.castShadow = true;
+		light.shadow.camera.top = 180;
+		light.shadow.camera.bottom = -180;
+		light.shadow.camera.left = -180;
+		light.shadow.camera.right = 180;
+    light.castShadow = true
+    scene.add(light)
+
+  }
+
+  function initModel() {
+
+    // 添加绿地
+    var groundTexture = new THREE.TextureLoader().load('./images/grasslight-big.jpg') //图片导入的方式
+    groundTexture.wrapS = groundTexture.wrapT = THREE.RepeatWrapping
+    groundTexture.repeat.set(25, 25)
+    groundTexture.anisotropy = 16
+    var groundMaterial = new THREE.MeshLambertMaterial({ //材质会对光有反应，但是不会出现高光，可以模拟一些粗糙的材质的物体，比如木头或者石头
+      map: groundTexture
+    })
+    var mesh = new THREE.Mesh(new THREE.PlaneBufferGeometry(20000, 20000), groundMaterial)
+    mesh.rotation.x = -Math.PI / 2
+    mesh.receiveShadow = true
+    scene.add(mesh)
+
+    // 添加任务模型 1.加载fbx文件  2.animate添加一个render方法  3.添加调试机制
+    var loader = new THREE.FBXLoader()
+    loader.load('./source/Naruto.fbx', mesh => {
+      console.log(mesh)
+      //创建动画
+      mixer = mesh.mixer = new THREE.AnimationMixer(mesh)
+      //把动画一个一个拿出来
+      actions = [] //存储动画用于调用
+      for (let i = 0; i < mesh.animations.length; i++) {
+        createActions(i)
+      }
+
+      function createActions(i) {
+        actions[i] = mixer.clipAction(mesh.animations[i])
+        // actions[i].play()
+        // 调用动画
+        gui["action" + i] = function () {
+          for (var j = 0; j < actions.length; j++) {
+            if (j === i) {
+              actions[j].play()
+            } else {
+              actions[j].stop()
+            }
+          }
+        }
+      }
+      //添加暂停所有动画的按键
+      gui.stop = function () {
+        for (var i = 0; i < actions.length; i++) {
+          actions[i].stop();
+        }
+      };
+      gui['action24']() // 页面刚加载进来的之后执行动画
+      mesh.position.y += 110;
+      scene.add(mesh)
+      naruto = mesh;
+
+    })
+  }
+
+  let position = new THREE.Vector3();
+
+  function render() {
+    var time = clock.getDelta()
+    if (mixer) {
+      mixer.update(time)
+    }
+    //如果模型添加成功，则每帧都移动角色位置
+    if (naruto) {
+      //获取当前位置
+      position.x += move.x;
+      position.z += move.z;
+
+      //修改模型位置
+      naruto.position.x = position.x;
+      naruto.position.z = position.z;
+
+      //修改平衡光的位置
+      light.position.x = position.x;
+      light.position.z = position.z + 100;
+
+      //修改相机位置
+      camera.position.x = position.x;
+      camera.position.z = position.z - 800;
+    }
+  }
+
+  function animate() {
+    render()
+    renderer.render(scene, camera)
+    requestAnimationFrame(animate)
+  }
+
+  function addSkills() {
+    let skill = document.querySelector("#skills");
+    dop.$(skill.querySelector(".attack")).on("tap", function () {
+      gui["action12"]();
+    })
+
+  }
+
+  function addStick() {
+    let control = document.querySelector("#joystick");
+    let barWrap = control.querySelector(".bar-wrap");
+    let bar = control.querySelector(".bar");
+    let media = dop.browserRedirect();
+    let center = new THREE.Vector2(); //操作杆的中心
+    let mouse = new THREE.Vector2(); //鼠标按下的位置
+    let doc = dop.$(document);
+
+    dop.$(control).on('down', function (event) {
+
+      event.preventDefault();
+      center.x = window.innerWidth - parseFloat(dop.getFinalStyle(control, "right")) - parseFloat(dop.getFinalStyle(
+        control, "width")) / 2;
+      center.y = window.innerHeight - parseFloat(dop.getFinalStyle(control, "bottom")) - parseFloat(dop
+        .getFinalStyle(control, "height")) / 2;
+
+      // 获取角度
+      getRadian(event)
+      //鼠标按下切换跑步动作
+      gui["action" + 3]();
+
+      //给document绑定拖拽和鼠标抬起事件
+      doc.on("move", move);
+      doc.on("up", up);
+    })
+
+    function getRadian() {
+      //获取到当前按下的位置
+      if (media === "pc") {
+        mouse.x = event.clientX;
+        mouse.y = event.clientY;
+      } else {
+        mouse.x = event.touches[0].clientX;
+        mouse.y = event.touches[0].clientY;
+      }
+      let distance = center.distanceTo(mouse);
+      distance >= parseFloat(dop.getFinalStyle(control, "width")) / 2 && (distance = parseFloat(dop.getFinalStyle(
+        control, "width")) / 2);
+
+      //计算两点之间的夹角
+      mouse.x = mouse.x - center.x;
+      mouse.y = mouse.y - center.y;
+
+
+      //修改操作杆的css样式
+      bar.style.marginTop = `-${distance}px`;
+      bar.style.transform = `translate(-50%, -50%) rotate(-${ (mouse.angle() / Math.PI * 180 + 90) % 360}deg)`;
+      barWrap.style.transform = `translate(-50%, -50%) rotate(${ (mouse.angle() / Math.PI * 180 + 90) % 360}deg)`;
+
+      //修改当前模型的朝向
+      if (naruto) {
+        naruto.rotation.y = -mouse.angle() - Math.PI / 2;
+      }
+
+      //修改当前的移动方向和移动速度
+      characterMove(mouse.normalize(), distance / (parseFloat(dop.getFinalStyle(control, "width")) / 2));
+    }
+
+    function move(event) {
+      getRadian(event);
+    }
+
+    function up() {
+      doc.remove("move", move);
+      doc.remove("up", up);
+
+      //按钮复原
+      bar.style.marginTop = 0;
+      barWrap.style.transform = `translate(-50%, -50%) rotate(0deg)`;
+      bar.style.transform = `translate(-50%, -50%) rotate(0deg)`;
+
+      //设置移动距离为零
+      characterMove(new THREE.Vector2(), 0);
+
+      //鼠标抬起切换站立状态
+      gui["action" + 24]();
+    }
+  }
+
+  //角色移动的方法
+  let direction = new THREE.Matrix4(); //当前移动的旋转矩阵
+  let move = new THREE.Vector3(); //当前位置移动的距离
+  function characterMove(vector, ratio) {
+    //重置矩阵
+    direction.identity();
+
+    //通过相机的四元数获取到相机的旋转矩阵
+    let quaternion = camera.quaternion;
+    direction.makeRotationFromQuaternion(quaternion);
+
+    //获取到操作杆的移动方向
+    move.x = vector.x;
+    move.y = 0;
+    move.z = vector.y;
+
+    //通过相机方向和操作杆获得最终角色的移动方向
+    move.applyMatrix4(direction);
+    move.normalize();
+
+    move.x = move.x * ratio * 10;
+    move.z = move.z * ratio * 10;
+  }
+
+  function draw() {
+    initGui()
+    initRender()
+    initScene()
+    initCamera()
+
+    initLight()
+    initModel()
+    addSkills()
+    addStick()
+
+    animate()
+  }
+</script>
+
+</html>
